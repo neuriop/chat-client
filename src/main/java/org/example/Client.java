@@ -23,6 +23,7 @@ public class Client implements Runnable {
             while ((length = fis.read(b)) > 0){
                 out.write(fis.read(b, 0, length));
             }
+            System.out.println("file sent");
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
