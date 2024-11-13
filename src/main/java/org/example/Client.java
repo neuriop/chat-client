@@ -24,6 +24,7 @@ public class Client implements Runnable {
                 System.out.println(message);
             }
 
+
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
