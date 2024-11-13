@@ -17,7 +17,7 @@ import java.util.Scanner;
 //    public void run() {
 //        try (Socket socket = new Socket(address, port);
 //             OutputStream out = socket.getOutputStream();
-//             FileInputStream fis = new FileInputStream("src/main/java/org/example/file.txt")) {
+//             FileInputStream fis = new FileInputStream("src/main/java/org/example/file2.txt")) {
 //            byte[] b = new byte[1024];
 //            int length;
 //            while ((length = fis.read(b)) > 0){
