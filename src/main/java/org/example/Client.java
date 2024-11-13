@@ -16,15 +16,13 @@ public class Client implements Runnable {
     @Override
     public void run() {
         try (Socket socket = new Socket(address, port);
-             BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-             PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
+             OutputStream out = socket.getOutputStream();
              FileInputStream fis = new FileInputStream("src/main/java/org/example/file.txt")) {
-            String message;
-            if ((message = in.readLine()) != null){
-                System.out.println(message);
+            byte[] b = new byte[1024];
+            int length;
+            while ((length = fis.read(b)) > 0){
+                out.write(fis.read(b, 0, length));
             }
-
-
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
