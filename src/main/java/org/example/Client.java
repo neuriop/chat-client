@@ -1,8 +1,6 @@
 package org.example;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
+import java.io.*;
 import java.net.Socket;
 import java.util.Scanner;
 
@@ -19,13 +17,13 @@ public class Client implements Runnable {
     public void run() {
         try (Socket socket = new Socket(address, port);
              BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-             PrintWriter out = new PrintWriter(socket.getOutputStream(), true)) {
+             PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
+             FileInputStream fis = new FileInputStream("src/main/java/org/example/file.txt")) {
             String message;
             if ((message = in.readLine()) != null){
                 System.out.println(message);
             }
-            Scanner scanner = new Scanner(System.in);
-            out.println(scanner.nextLine());
+
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
