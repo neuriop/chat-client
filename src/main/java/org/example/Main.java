@@ -51,8 +51,10 @@ public class Main {
 
             System.out.println(tempFile.length());
 
-            String hash = getFileHash(tempFile, 1024);
-            System.out.println(hash);
+            System.out.println("Full hash");
+            System.out.println(getFileHash(tempFile));
+            String hash = getFileHash(tempFile);
+
 
 
             String receivedHash = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
@@ -67,6 +69,14 @@ public class Main {
         } catch (IOException e) {
             e.printStackTrace();
         } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private static String getFileHash(File file) throws IOException {
+        try (FileInputStream fileInputStream = new FileInputStream(file)){
+            return calculateHash(fileInputStream.readAllBytes());
+        } catch (NoSuchAlgorithmException e) {
             throw new RuntimeException(e);
         }
     }
