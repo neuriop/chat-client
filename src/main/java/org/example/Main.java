@@ -2,12 +2,14 @@ package org.example;
 
 import java.io.*;
 import java.net.Socket;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 
 public class Main {
     private static final String SERVER_ADDRESS = "localhost";
     private static final int PORT = 8080;
 
-    private static void sendFile(Socket socket) throws Exception{
+    private static void sendFile(Socket socket) throws Exception {
         byte[] fileData = getBytes();
 
         // Відправка файлу на сервер
@@ -27,33 +29,57 @@ public class Main {
 
     public static void main(String[] args) {
         try (Socket socket = new Socket(SERVER_ADDRESS, PORT);
-             OutputStream outputStream = socket.getOutputStream()) {
+             OutputStream outputStream = socket.getOutputStream();
+             InputStream inputStream = socket.getInputStream()) {
 
             System.out.println("Підключено до сервера.");
 
             // Створюємо файл з текстом "бум бум"
-            String content = "бум бум";
+            String content = "ха ха";
             File tempFile = new File("src/main/java/org/example/file2.txt");
-            try (FileWriter writer = new FileWriter(tempFile)) {
-                writer.write(content);
-            }
+//            try (FileWriter writer = new FileWriter(tempFile)) {
+//                writer.write(content);
+//            }
 
             // Відправляємо файл на сервер
             try (FileInputStream fileInputStream = new FileInputStream(tempFile)) {
-                byte[] buffer = new byte[1024];
+                byte[] buffer = new byte[512];
                 int bytesRead;
-                while ((bytesRead = fileInputStream.read(buffer)) != -1) {
-                    outputStream.write(buffer, 0, bytesRead);
-                }
+                    while ((bytesRead = fileInputStream.read(buffer)) != -1) {
+                    if (bytesRead != 0 && inputStream.read() != 2) {
+                        outputStream.write(buffer, 0, bytesRead);
+                        outputStream.write(calculateHash(buffer).getBytes());
+                    }
+//                        outputStream.write(buffer, 0, bytesRead);
+//                        outputStream.write(calculateHash(buffer).getBytes());
+
+                    }
+//                    if (inputStream.read() != 2){
+//                        outputStream.write(buffer, 0, bytesRead);
+//                        outputStream.write(calculateHash(buffer).getBytes());
+//                    }
             }
 
             System.out.println("Файл з текстом 'бум бум' відправлено на сервер.");
 
             // Видаляємо тимчасовий файл
-            tempFile.delete();
+//            tempFile.delete();
         } catch (IOException e) {
             e.printStackTrace();
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException(e);
         }
+    }
+
+    // Метод для обчислення хешу (SHA-256) файлу
+    private static String calculateHash(byte[] fileContent) throws NoSuchAlgorithmException {
+        MessageDigest digest = MessageDigest.getInstance("SHA-256");
+        byte[] hashBytes = digest.digest(fileContent);
+        StringBuilder hashString = new StringBuilder();
+        for (byte b : hashBytes) {
+            hashString.append(String.format("%02x", b));
+        }
+        return hashString.toString();
     }
 
 //    public static void main(String[] args) {
