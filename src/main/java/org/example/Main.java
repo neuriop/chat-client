@@ -8,7 +8,7 @@ import java.security.NoSuchAlgorithmException;
 
 public class Main {
     private static final String SERVER_ADDRESS = "localhost";
-    private static final int PORT = 8080;
+    private static final int PORT = 5000;
 
     private static void sendFile(Socket socket) throws Exception {
         byte[] fileData = getBytes();
@@ -61,8 +61,10 @@ public class Main {
             System.out.println(receivedHash);
 
             if (hash.equals(receivedHash))
-                System.out.println("File sent sucessfully");
+                System.out.println("File sent successfully");
             else System.out.println("File damaged");
+
+
 
             // Видаляємо тимчасовий файл
 //            tempFile.delete();
