@@ -2,6 +2,7 @@ package org.example;
 
 import java.io.*;
 import java.net.Socket;
+import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
@@ -41,33 +42,54 @@ public class Main {
 //                writer.write(content);
 //            }
 
-            // Відправляємо файл на сервер
-            try (FileInputStream fileInputStream = new FileInputStream(tempFile)) {
-                byte[] buffer = new byte[512];
-                int bytesRead;
-                    while ((bytesRead = fileInputStream.read(buffer)) != -1) {
-                    if (bytesRead != 0 && inputStream.read() != 2) {
-                        outputStream.write(buffer, 0, bytesRead);
-                        outputStream.write(calculateHash(buffer).getBytes());
-                    }
-//                        outputStream.write(buffer, 0, bytesRead);
-//                        outputStream.write(calculateHash(buffer).getBytes());
 
-                    }
-//                    if (inputStream.read() != 2){
-//                        outputStream.write(buffer, 0, bytesRead);
-//                        outputStream.write(calculateHash(buffer).getBytes());
-//                    }
-            }
 
-            System.out.println("Файл з текстом 'бум бум' відправлено на сервер.");
+            if (tempFile.length() <= 1024)
+                // Відправляємо файл на сервер
+                sendFile(tempFile, outputStream);
+            else System.out.println("File is too large");
+
+            System.out.println(tempFile.length());
+
+            String hash = getFileHash(tempFile, 1024);
+            System.out.println(hash);
+
+
+            String receivedHash = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
+            System.out.println(receivedHash);
+
+            if (hash.equals(receivedHash))
+                System.out.println("File sent sucessfully");
+            else System.out.println("File damaged");
 
             // Видаляємо тимчасовий файл
 //            tempFile.delete();
         } catch (IOException e) {
             e.printStackTrace();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private static String getFileHash(File file, int bufferLength) throws IOException {
+        try (FileInputStream fileInputStream = new FileInputStream(file)){
+            byte[] buffer = new byte[bufferLength];
+            fileInputStream.read(buffer);
+            return calculateHash(buffer);
         } catch (NoSuchAlgorithmException e) {
             throw new RuntimeException(e);
+        }
+    }
+
+    private static void sendFile(File tempFile, OutputStream outputStream) throws IOException {
+        try (FileInputStream fileInputStream = new FileInputStream(tempFile)) {
+            byte[] buffer = new byte[1024];
+            int bytesRead;
+            while ((bytesRead = fileInputStream.read(buffer)) != -1) {
+
+                outputStream.write(buffer, 0, bytesRead);
+            }
+            System.out.println("Файл з текстом 'бум бум' відправлено на сервер.");
         }
     }
 
