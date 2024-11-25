@@ -3,7 +3,6 @@ package org.example;
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
@@ -100,11 +99,13 @@ public class Server {
             byte[] hash = new byte[32];
             int totalBytesRead = 0; // Counter for total bytes read
             int bytesRead;
+            // byte[] bytes = new byte[bytesRead]
 
             while (totalBytesRead < 1024 && (bytesRead = inputStream.read(buffer)) != -1) {
                 // Calculate how many bytes to write
+
                 inputStream.read(hash);
-                if (areHashesEqual(calculateHashBytes(buffer), hash)) {
+                if (areHashesEqual(calculateHashBytes(byteArrayByLength(bytesRead, buffer)), hash)) {
                     System.out.println("Hashes are equal, saving file");
                     int bytesToWrite = Math.min(bytesRead, 1024 - totalBytesRead);
                     fileOutputStream.write(buffer, 0, bytesToWrite);
@@ -117,5 +118,13 @@ public class Server {
                 }
             }
         }
+    }
+
+    private static byte[] byteArrayByLength(int length, byte[] bytes){
+        byte[] newBytes = new byte[length];
+        for (int i = 0; i < newBytes.length; i++) {
+            newBytes[i] = bytes[i];
+        }
+        return newBytes;
     }
 }

@@ -18,7 +18,7 @@ public class Client {
             File tempFile = new File("src/main/java/org/example/file2.txt");
 
             if (tempFile.length() <= 1024)
-                // Відправляємо файл на сервер
+//                 Відправляємо файл на сервер
                 sendFile(tempFile, outputStream, inputStream);
             else System.out.println("File is too large");
 
