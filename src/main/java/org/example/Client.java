@@ -20,7 +20,7 @@ public class Client {
 
             if (tempFile.length() <= 1024)
 //                 Відправляємо файл на сервер
-                sendFile(tempFile, outputStream);
+                sendFile(tempFile, outputStream, inputStream);
             else System.out.println("File is too large");
 
         } catch (IOException e) {
@@ -56,25 +56,24 @@ public class Client {
     private static void sendFile(File tempFile, OutputStream outputStream) throws IOException {
         try (FileInputStream fileInputStream = new FileInputStream(tempFile);
              DataOutputStream out = new DataOutputStream(outputStream)) {
-            out.writeUTF("new_file.txt");
-            out.writeInt((int) tempFile.length());
-            outputStream.write(fileInputStream.readAllBytes());
+
         }
     }
 
     private static void sendFile(File tempFile, OutputStream outputStream, InputStream inputStream) throws IOException, NoSuchAlgorithmException {
-        try (FileInputStream fileInputStream = new FileInputStream(tempFile)) {
+        try (FileInputStream fileInputStream = new FileInputStream(tempFile);
+             DataOutputStream out = new DataOutputStream(outputStream);
+             DataInputStream in = new DataInputStream(inputStream)) {
             byte[] buffer = new byte[512];
             int bytesRead;
+            int number = 0;
+            in.readInt();
             while ((bytesRead = fileInputStream.read(buffer)) != -1) {
-                outputStream.write(buffer, 0, bytesRead);
-                outputStream.write(calculateHashBytes(buffer));
-                while (inputStream.read() == 0) {
-                    System.out.println("Hashes are different, resending bytes");
-                    outputStream.write(buffer, 0, bytesRead);
-                    outputStream.write(calculateHashBytes(buffer));
-                }
-                System.out.println("Hashes are equal");
+                out.writeInt(number);
+                out.writeInt(bytesRead);
+                out.write(buffer, 0, bytesRead);
+                System.out.println(in.readUTF());
+                number++;
             }
         }
     }
