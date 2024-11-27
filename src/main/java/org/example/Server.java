@@ -5,6 +5,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.Arrays;
 
 public class Server {
     private static final int PORT = 50128;
@@ -94,37 +95,40 @@ public class Server {
     }
 
     private static void receiveFile(File file, InputStream inputStream, OutputStream outputStream) throws IOException, NoSuchAlgorithmException {
-        try (FileOutputStream fileOutputStream = new FileOutputStream(file, true)) {
-            byte[] buffer = new byte[512];
+        try (FileOutputStream fileOutputStream = new FileOutputStream(file, true);
+             DataOutputStream out = new DataOutputStream(outputStream);
+             DataInputStream in = new DataInputStream(inputStream)) {
+            System.out.println(in.readUTF());
+            int fileLength = in.readInt();
+            System.out.println(fileLength);
+            byte[] arr = new byte[fileLength];
+            in.readFully(arr);
             byte[] hash = new byte[32];
-            int totalBytesRead = 0; // Counter for total bytes read
-            int bytesRead;
-            // byte[] bytes = new byte[bytesRead]
+            in.readFully(hash);
 
-            while (totalBytesRead < 1024 && (bytesRead = inputStream.read(buffer)) != -1) {
-                // Calculate how many bytes to write
-
-                inputStream.read(hash);
-                if (areHashesEqual(calculateHashBytes(byteArrayByLength(bytesRead, buffer)), hash)) {
-                    System.out.println("Hashes are equal, saving file");
-                    int bytesToWrite = Math.min(bytesRead, 1024 - totalBytesRead);
-                    fileOutputStream.write(buffer, 0, bytesToWrite);
-                    totalBytesRead += bytesToWrite; // Update the total bytes read
-                    System.out.println(bytesToWrite); // Print the number of bytes written
-                    outputStream.write(1); // Confirm receiving correct hash;
-                } else {
-                    System.out.println("Hashes are different. Requesting to resend bytes");
-                    outputStream.write(0); // Confirm receiving incorrect hash, for sender to send it again
-                }
+            if (Arrays.equals(hash, calculateHashBytes(arr))) {
+                System.out.println("Fine");
+                out.writeUTF("успішно");
+                out.writeUTF(calculateHash(arr));
+                out.writeInt(fileLength);
+                out.write(arr);
             }
         }
     }
 
-    private static byte[] byteArrayByLength(int length, byte[] bytes){
+    private static byte[] byteArrayByLength(int length, byte[] bytes) {
         byte[] newBytes = new byte[length];
         for (int i = 0; i < newBytes.length; i++) {
             newBytes[i] = bytes[i];
         }
         return newBytes;
+    }
+
+    private static String hashFromHashBytes(byte[] hash){
+        StringBuilder hashString = new StringBuilder();
+        for (byte b : hash) {
+            hashString.append(String.format("%02x", b));
+        }
+        return hashString.toString();
     }
 }
