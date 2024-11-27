@@ -2,12 +2,13 @@ package org.example;
 
 import java.io.*;
 import java.net.Socket;
+import java.nio.ByteBuffer;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
 public class Client {
     private static final String SERVER_ADDRESS = "localhost";
-    private static final int PORT = 50128;
+    private static final int PORT = 5000;
 
     public static void main(String[] args) {
         try (Socket socket = new Socket(SERVER_ADDRESS, PORT);
@@ -19,7 +20,7 @@ public class Client {
 
             if (tempFile.length() <= 1024)
 //                 Відправляємо файл на сервер
-                sendFile(tempFile, outputStream, inputStream);
+                sendFile(tempFile, outputStream);
             else System.out.println("File is too large");
 
         } catch (IOException e) {
@@ -53,12 +54,11 @@ public class Client {
     }
 
     private static void sendFile(File tempFile, OutputStream outputStream) throws IOException {
-        try (FileInputStream fileInputStream = new FileInputStream(tempFile)) {
-            byte[] buffer = new byte[512];
-            int bytesRead;
-            while ((bytesRead = fileInputStream.read(buffer)) != -1) {
-                outputStream.write(buffer, 0, bytesRead);
-            }
+        try (FileInputStream fileInputStream = new FileInputStream(tempFile);
+             DataOutputStream out = new DataOutputStream(outputStream)) {
+            out.writeUTF("new_file.txt");
+            out.writeInt((int) tempFile.length());
+            outputStream.write(fileInputStream.readAllBytes());
         }
     }
 
