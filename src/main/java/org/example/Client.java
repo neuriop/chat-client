@@ -10,17 +10,21 @@ public class Client {
     private static final String SERVER_ADDRESS = "localhost";
     private static final int PORT = 5000;
 
+    static File tempFile = new File("src/main/java/org/example/file2.txt");
+    static File tempFile2 = new File("src/main/java/org/example/file3.txt");
+
     public static void main(String[] args) {
         try (Socket socket = new Socket(SERVER_ADDRESS, PORT);
              OutputStream outputStream = socket.getOutputStream();
              InputStream inputStream = socket.getInputStream()) {
 
             System.out.println("Підключено до сервера.");
-            File tempFile = new File("src/main/java/org/example/file2.txt");
+
+            System.out.println((int) tempFile.length());
 
             if (tempFile.length() <= 1024)
 //                 Відправляємо файл на сервер
-                sendFile(tempFile, outputStream);
+                sendFile(tempFile, outputStream, inputStream);
             else System.out.println("File is too large");
 
         } catch (IOException e) {
@@ -55,7 +59,7 @@ public class Client {
 
     private static void sendFile(File tempFile, OutputStream outputStream) throws IOException {
         try (FileInputStream fileInputStream = new FileInputStream(tempFile);
-             DataOutputStream out = new DataOutputStream(outputStream)) {
+             DataOutputStream out = new DataOutputStream(outputStream);) {
             out.writeUTF("new_file.txt");
             out.writeInt((int) tempFile.length());
             outputStream.write(fileInputStream.readAllBytes());
@@ -63,19 +67,22 @@ public class Client {
     }
 
     private static void sendFile(File tempFile, OutputStream outputStream, InputStream inputStream) throws IOException, NoSuchAlgorithmException {
-        try (FileInputStream fileInputStream = new FileInputStream(tempFile)) {
-            byte[] buffer = new byte[512];
-            int bytesRead;
-            while ((bytesRead = fileInputStream.read(buffer)) != -1) {
-                outputStream.write(buffer, 0, bytesRead);
-                outputStream.write(calculateHashBytes(buffer));
-                while (inputStream.read() == 0) {
-                    System.out.println("Hashes are different, resending bytes");
-                    outputStream.write(buffer, 0, bytesRead);
-                    outputStream.write(calculateHashBytes(buffer));
-                }
-                System.out.println("Hashes are equal");
-            }
+        try (FileInputStream fileInputStream = new FileInputStream(tempFile);
+             DataOutputStream out = new DataOutputStream(outputStream);
+             DataInputStream in = new DataInputStream(inputStream);
+             FileOutputStream fileOutputStream = new FileOutputStream(tempFile2)) {
+            out.writeUTF("new_file.txt");
+            out.writeInt((int) tempFile.length());
+            byte[] file = fileInputStream.readAllBytes();
+            out.writeUTF(calculateHash(file));
+            out.write(file);
+            System.out.println(in.readUTF());
+            System.out.println(in.readUTF());
+            int fileSize = in.readInt();
+            byte[] bytes = new byte[fileSize];
+            in.readFully(bytes);
+            fileOutputStream.write(bytes);
+
         }
     }
 
