@@ -112,9 +112,7 @@ public class Server {
 
     private static byte[] byteArrayByLength(int length, byte[] bytes){
         byte[] newBytes = new byte[length];
-        for (int i = 0; i < newBytes.length; i++) {
-            newBytes[i] = bytes[i];
-        }
+        System.arraycopy(bytes, 0, newBytes, 0, newBytes.length);
         return newBytes;
     }
 }
