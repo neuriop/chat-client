@@ -5,9 +5,10 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.Arrays;
 
 public class Server {
-    private static final int PORT = 50128;
+    private static final int PORT = 5000;
     private static final int MAX_FILE_SIZE = 1024; // 1 KB
 
 
@@ -94,29 +95,18 @@ public class Server {
     }
 
     private static void receiveFile(File file, InputStream inputStream, OutputStream outputStream) throws IOException, NoSuchAlgorithmException {
-        try (FileOutputStream fileOutputStream = new FileOutputStream(file, true)) {
-            byte[] buffer = new byte[512];
-            byte[] hash = new byte[32];
-            int totalBytesRead = 0; // Counter for total bytes read
-            int bytesRead;
-            // byte[] bytes = new byte[bytesRead]
-
-            while (totalBytesRead < 1024 && (bytesRead = inputStream.read(buffer)) != -1) {
-                // Calculate how many bytes to write
-
-                inputStream.read(hash);
-                if (areHashesEqual(calculateHashBytes(byteArrayByLength(bytesRead, buffer)), hash)) {
-                    System.out.println("Hashes are equal, saving file");
-                    int bytesToWrite = Math.min(bytesRead, 1024 - totalBytesRead);
-                    fileOutputStream.write(buffer, 0, bytesToWrite);
-                    totalBytesRead += bytesToWrite; // Update the total bytes read
-                    System.out.println(bytesToWrite); // Print the number of bytes written
-                    outputStream.write(1); // Confirm receiving correct hash;
-                } else {
-                    System.out.println("Hashes are different. Requesting to resend bytes");
-                    outputStream.write(0); // Confirm receiving incorrect hash, for sender to send it again
-                }
-            }
+        try (FileOutputStream fileOutputStream = new FileOutputStream(file);
+        DataOutputStream out = new DataOutputStream(outputStream);
+        DataInputStream in = new DataInputStream(inputStream)) {
+            in.readUTF();
+            int fileSize = in.readInt();
+            System.out.println(fileSize);
+            byte[] bytes = new byte[fileSize];
+            in.readFully(bytes);
+            fileOutputStream.write(bytes);
+            out.writeUTF("успішно");
+            out.writeInt(fileSize);
+            out.write(bytes);
         }
     }
 
